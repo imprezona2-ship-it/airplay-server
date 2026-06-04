@@ -306,20 +306,33 @@
   // recentrar: toma la orientación actual como "centro"
   centerBtn.addEventListener("click", () => { baseBeta = null; baseGamma = null; });
 
+  let targetX = 0, targetY = 0;   // a dónde apunta el sensor
+  const SMOOTH = 0.12;            // suavizado: más bajo = más estable/lento
+
   function onOrient(e) {
     if (!gyroMode || !gyroOn) return;
-    // beta = inclinación adelante/atrás, gamma = izquierda/derecha
-    let beta = e.beta || 0;    // -180..180
-    let gamma = e.gamma || 0;  // -90..90
-    // primera lectura = referencia (centro)
+    let beta = e.beta || 0;    // adelante/atrás (-180..180)
+    let gamma = e.gamma || 0;  // izquierda/derecha (-90..90)
     if (baseBeta === null) { baseBeta = beta; baseGamma = gamma; return; }
-    let dB = beta - baseBeta;   // arriba/abajo
-    let dG = gamma - baseGamma; // izquierda/derecha
-    // a rango -1..1 según GYRO_RANGE grados
-    let x = Math.max(-1, Math.min(1, dG / GYRO_RANGE));
-    let y = Math.max(-1, Math.min(1, dB / GYRO_RANGE));
-    curX = x; curY = y;   // reusa el mismo envío que el stick
+    let dB = beta - baseBeta;
+    let dG = gamma - baseGamma;
+    // MODO APAISADO (celu horizontal, como un fusil):
+    // - girar el celu como volante (cambia beta) => mover en horizontal
+    // - levantar/bajar el celu (cambia gamma) => mover en vertical
+    targetX = Math.max(-1, Math.min(1, dB / GYRO_RANGE));
+    targetY = Math.max(-1, Math.min(1, -dG / GYRO_RANGE));
   }
+
+  // loop de suavizado: la mira se acerca de a poco al objetivo (estable, sin temblar)
+  function gyroSmoothLoop(){
+    if (gyroMode && gyroOn) {
+      curX += (targetX - curX) * SMOOTH;
+      curY += (targetY - curY) * SMOOTH;
+    }
+    requestAnimationFrame(gyroSmoothLoop);
+  }
+  requestAnimationFrame(gyroSmoothLoop);
+
 
   // disparar tocando la zona (modo giroscopio)
   function fireDown(e){ e.preventDefault(); fireZone.classList.add("firing");
