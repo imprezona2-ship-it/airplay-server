@@ -31,6 +31,15 @@
   .side{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
   .sens-top{display:none;align-items:center;gap:8px;flex:1;justify-content:center;max-width:55%}
   .sens-top.show{display:flex}
+  .ctrl-top{display:none;align-items:center;gap:8px;flex:1;justify-content:center;flex-wrap:wrap}
+  .ctrl-top.show{display:flex}
+  .minibtn{background:#ffffff12;border:1px solid #ffffff20;color:var(--ink);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:13px;font-weight:700}
+  .minibtn.active{background:var(--accent);color:#04210f;border-color:var(--accent)}
+  /* zona de disparo táctil en modo giroscopio */
+  .fire-zone{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:3}
+  .fire-zone.show{display:flex}
+  .fire-zone .hint{color:var(--dim);font-family:'Space Mono',monospace;font-size:15px;text-align:center;pointer-events:none;padding:20px;border:2px dashed #ffffff18;border-radius:20px}
+  .fire-zone.firing .hint{border-color:var(--accent);color:var(--accent)}
   .sens-lbl{font-family:'Space Mono',monospace;font-size:12px;color:var(--dim);white-space:nowrap}
   .sens-lbl b{color:var(--accent)}
   #sensSlider{width:100%;max-width:170px;-webkit-appearance:none;appearance:none;height:8px;border-radius:5px;background:#ffffff18;outline:none}
@@ -65,7 +74,7 @@
       0 0 22px #6bff9533}
 
   /* Botones tipo PS con relieve */
-  .btns{position:relative;width:min(48vw,240px);aspect-ratio:1;top:-60px}
+  .btns{position:relative;width:min(48vw,240px);aspect-ratio:1}
   .btn{position:absolute;width:38%;aspect-ratio:1;border-radius:50%;border:2px solid;
     background:radial-gradient(circle at 40% 32%, #20202c, #101019);
     font-family:inherit;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center;
@@ -97,7 +106,10 @@
 <body>
 <div class="top">
   <div class="logo">Air<span>Play</span></div>
-  <div class="sens-top" id="sensTop">
+  <div class="ctrl-top" id="ctrlTop">
+    <button id="modeBtn" class="minibtn">🕹️ Stick</button>
+    <button id="aimBtn" class="minibtn" style="display:none">🎯 Activar</button>
+    <button id="centerBtn" class="minibtn" style="display:none">⊕ Centrar</button>
     <span class="sens-lbl">Sens <b id="sensVal">5</b></span>
     <input type="range" id="sensSlider" min="1" max="10" value="5" step="1" />
   </div>
@@ -116,6 +128,7 @@
 <!-- GAMEPAD -->
 <div class="pad" id="pad">
   <div class="banner" id="banner">Conectado · mirá la tele</div>
+  <div class="fire-zone" id="fireZone"><div class="hint">Apuntá moviendo el celu<br>Tocá acá para disparar</div></div>
   <div class="menu-overlay" id="menuOverlay">
     <div class="menu-card" id="menuCard"></div>
   </div>
@@ -169,7 +182,7 @@
     document.getElementById("pad").classList.add("active");
     document.getElementById("you").textContent = "● conectado";
     document.getElementById("you").style.color = color;
-    document.getElementById("sensTop").classList.add("show");
+    document.getElementById("ctrlTop").classList.add("show");
     sendSens(); // mandar sensibilidad inicial
   });
 
@@ -237,6 +250,86 @@
   base.addEventListener("mousedown", (e) => { mouseDown = true; knob.classList.add("holding"); moveStick(e.clientX, e.clientY); });
   window.addEventListener("mousemove", (e) => { if (mouseDown) moveStick(e.clientX, e.clientY); });
   window.addEventListener("mouseup", () => { if (mouseDown) { mouseDown = false; resetStick(); } });
+
+  /* ===================== GIROSCOPIO (apuntar moviendo el celu) ===================== */
+  let gyroMode = false;       // false = stick, true = giroscopio
+  let gyroOn = false;         // si el sensor está activado y con permiso
+  let baseBeta = null, baseGamma = null;   // orientación de referencia (recentrado)
+  const GYRO_RANGE = 35;      // grados de inclinación que equivalen a tope (-1..1)
+
+  const modeBtn = document.getElementById("modeBtn");
+  const aimBtn = document.getElementById("aimBtn");
+  const centerBtn = document.getElementById("centerBtn");
+  const fireZone = document.getElementById("fireZone");
+
+  // cambiar entre Stick y Movimiento
+  modeBtn.addEventListener("click", () => {
+    gyroMode = !gyroMode;
+    if (gyroMode) {
+      modeBtn.textContent = "🎮 Movim.";
+      modeBtn.classList.add("active");
+      aimBtn.style.display = "inline-block";
+      centerBtn.style.display = "inline-block";
+      fireZone.classList.add("show");
+      document.getElementById("stickBase").style.opacity = "0.25";
+      resetStick();
+    } else {
+      modeBtn.textContent = "🕹️ Stick";
+      modeBtn.classList.remove("active");
+      aimBtn.style.display = "none";
+      centerBtn.style.display = "none";
+      fireZone.classList.remove("show");
+      document.getElementById("stickBase").style.opacity = "1";
+      curX = 0; curY = 0;
+    }
+  });
+
+  // activar el sensor (pide permiso en iOS / algunos Android)
+  aimBtn.addEventListener("click", async () => {
+    try {
+      if (typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function") {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== "granted") { alert("Permiso de sensor denegado"); return; }
+      }
+      window.addEventListener("deviceorientation", onOrient, true);
+      gyroOn = true;
+      aimBtn.textContent = "🎯 Activo";
+      aimBtn.classList.add("active");
+      // recentrar al activar
+      baseBeta = null; baseGamma = null;
+    } catch (e) {
+      alert("Este celu no soporta el sensor de movimiento");
+    }
+  });
+
+  // recentrar: toma la orientación actual como "centro"
+  centerBtn.addEventListener("click", () => { baseBeta = null; baseGamma = null; });
+
+  function onOrient(e) {
+    if (!gyroMode || !gyroOn) return;
+    // beta = inclinación adelante/atrás, gamma = izquierda/derecha
+    let beta = e.beta || 0;    // -180..180
+    let gamma = e.gamma || 0;  // -90..90
+    // primera lectura = referencia (centro)
+    if (baseBeta === null) { baseBeta = beta; baseGamma = gamma; return; }
+    let dB = beta - baseBeta;   // arriba/abajo
+    let dG = gamma - baseGamma; // izquierda/derecha
+    // a rango -1..1 según GYRO_RANGE grados
+    let x = Math.max(-1, Math.min(1, dG / GYRO_RANGE));
+    let y = Math.max(-1, Math.min(1, dB / GYRO_RANGE));
+    curX = x; curY = y;   // reusa el mismo envío que el stick
+  }
+
+  // disparar tocando la zona (modo giroscopio)
+  function fireDown(e){ e.preventDefault(); fireZone.classList.add("firing");
+    socket.emit("player:input", { type:"button", button:"cross", state:"down" }); }
+  function fireUp(e){ e.preventDefault(); fireZone.classList.remove("firing");
+    socket.emit("player:input", { type:"button", button:"cross", state:"up" }); }
+  fireZone.addEventListener("touchstart", fireDown, { passive:false });
+  fireZone.addEventListener("touchend", fireUp, { passive:false });
+  fireZone.addEventListener("mousedown", fireDown);
+  fireZone.addEventListener("mouseup", fireUp);
 
   /* ---------- BOTONES ---------- */
   document.querySelectorAll(".btn").forEach((b) => {
