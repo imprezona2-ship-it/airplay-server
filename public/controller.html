@@ -13,7 +13,7 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;overflow:hidden;overscroll-behavior:none}
   body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
-  .top{padding:14px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff10;flex-shrink:0}
+  .top{padding:14px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff10;flex-shrink:0;position:relative;z-index:5;background:var(--bg)}
   .logo{font-weight:800;font-size:18px}.logo span{color:var(--accent)}
   .you{font-family:'Space Mono',monospace;font-size:12px;color:var(--dim)}
 
@@ -35,8 +35,8 @@
   .ctrl-top.show{display:flex}
   .minibtn{background:#ffffff12;border:1px solid #ffffff20;color:var(--ink);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:13px;font-weight:700}
   .minibtn.active{background:var(--accent);color:#04210f;border-color:var(--accent)}
-  /* zona de disparo táctil en modo giroscopio */
-  .fire-zone{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:3}
+  /* zona de disparo táctil en modo giroscopio (deja libre la barra de arriba) */
+  .fire-zone{position:absolute;top:70px;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;z-index:3}
   .fire-zone.show{display:flex}
   .fire-zone .hint{color:var(--dim);font-family:'Space Mono',monospace;font-size:15px;text-align:center;pointer-events:none;padding:20px;border:2px dashed #ffffff18;border-radius:20px}
   .fire-zone.firing .hint{border-color:var(--accent);color:var(--accent)}
