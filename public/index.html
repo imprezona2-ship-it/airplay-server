@@ -234,9 +234,9 @@
 
   // tipos de zombi: lento (mayoría), medio, rápido (pocos)
   const ZTYPES = {
-    lento:  { speedBase:0.000010, color:"#3c5a3a", head:"#6f8f5a", hp:34, sizeMul:1.15, prob:0.60 },
-    medio:  { speedBase:0.000025, color:"#5a6a2a", head:"#8fa05a", hp:30, sizeMul:1.0,  prob:0.40 },
-    rapido: { speedBase:0.000040, color:"#6a3a2a", head:"#b06a4a", hp:22, sizeMul:0.85, prob:0.30 },
+    lento:  { speedBase:0.00018, color:"#3c5a3a", head:"#6f8f5a", hp:34, sizeMul:1.15, prob:0.60 },
+    medio:  { speedBase:0.00032, color:"#5a6a2a", head:"#8fa05a", hp:30, sizeMul:1.0,  prob:0.28 },
+    rapido: { speedBase:0.00052, color:"#6a3a2a", head:"#b06a4a", hp:22, sizeMul:0.85, prob:0.12 },
   };
   function pickType(){
     // a mayor oleada, sube un poco la chance de medios/rápidos (pero los lentos siguen siendo mayoría)
