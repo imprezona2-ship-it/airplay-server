@@ -8,12 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
 <script src="/socket.io/socket.io.js"></script>
 <style>
-  :root{--bg:#0a0a12;--panel:#13131f;--ink:#f4f4ff;--dim:#6b6b8a;--accent:#6bff95;
-    --cross:#4dd0ff;--circle:#ff4d6d;--triangle:#6bff95;--square:#c77dff}
+  :root{--bg:#0a0a12;--panel:#13131f;--ink:#f4f4ff;--dim:#6b6b8a;--accent:#6bff95;--fire:#ff4d6d}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;overflow:hidden;overscroll-behavior:none}
   body{font-family:'Bricolage Grotesque',sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
-  .top{padding:14px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff10;flex-shrink:0;position:relative;z-index:5;background:var(--bg)}
+  .top{padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff10;flex-shrink:0;position:relative;z-index:5;background:var(--bg)}
   .logo{font-weight:800;font-size:18px}.logo span{color:var(--accent)}
   .you{font-family:'Space Mono',monospace;font-size:12px;color:var(--dim)}
 
@@ -25,81 +24,53 @@
   .join button{width:100%;max-width:300px;background:var(--accent);color:#04210f;border:none;border-radius:16px;padding:18px;font-family:inherit;font-weight:800;font-size:18px}
   .err{color:#ff4d6d;font-size:14px;min-height:18px}
 
-  /* GAMEPAD */
-  .pad{flex:1;display:none;flex-direction:row;align-items:center;justify-content:space-around;padding:24px 24px 44px;gap:16px}
-  .pad.active{display:flex}
-  .side{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
-  .sens-top{display:none;align-items:center;gap:8px;flex:1;justify-content:center;max-width:55%}
-  .sens-top.show{display:flex}
-  .ctrl-top{display:none;align-items:center;gap:8px;flex:1;justify-content:center;flex-wrap:wrap}
+  /* sensibilidad arriba */
+  .ctrl-top{display:none;align-items:center;gap:8px;flex:1;justify-content:center}
   .ctrl-top.show{display:flex}
-  .minibtn{background:#ffffff12;border:1px solid #ffffff20;color:var(--ink);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:13px;font-weight:700}
-  .minibtn.active{background:var(--accent);color:#04210f;border-color:var(--accent)}
-  /* zona de disparo táctil en modo giroscopio (deja libre la barra de arriba) */
-  .fire-zone{position:absolute;top:70px;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;z-index:3}
-  .fire-zone.show{display:flex}
-  .fire-zone .hint{color:var(--dim);font-family:'Space Mono',monospace;font-size:15px;text-align:center;pointer-events:none;padding:20px;border:2px dashed #ffffff18;border-radius:20px}
-  .fire-zone.firing .hint{border-color:var(--accent);color:var(--accent)}
   .sens-lbl{font-family:'Space Mono',monospace;font-size:12px;color:var(--dim);white-space:nowrap}
   .sens-lbl b{color:var(--accent)}
-  #sensSlider{width:100%;max-width:170px;-webkit-appearance:none;appearance:none;height:8px;border-radius:5px;background:#ffffff18;outline:none}
+  #sensSlider{width:100%;max-width:200px;-webkit-appearance:none;appearance:none;height:8px;border-radius:5px;background:#ffffff18;outline:none}
   #sensSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #04210f}
   #sensSlider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #04210f}
 
-  /* Joystick analógico estilo gamepad */
-  .stick-base{position:relative;width:min(42vw,210px);aspect-ratio:1;border-radius:50%;
-    background:
-      radial-gradient(circle at 50% 38%, #20202f 0%, #14141e 55%, #0a0a12 100%);
-    border:1px solid #ffffff10;
-    box-shadow:inset 0 6px 26px #000000aa, inset 0 -3px 10px #ffffff08, 0 4px 14px #00000060}
-  /* anillo guía con muescas */
-  .stick-base::before{content:"";position:absolute;inset:14%;border-radius:50%;
-    border:2px dashed #ffffff0e;box-shadow:inset 0 0 18px #00000060}
-  .stick-base::after{content:"";position:absolute;inset:0;border-radius:50%;
-    background:conic-gradient(from 0deg,#ffffff08,transparent 25%,#ffffff08 50%,transparent 75%,#ffffff08);opacity:.4}
+  /* GAMEPAD: stick a la izq, botón disparo a la der (centrados verticalmente) */
+  .pad{flex:1;display:none;flex-direction:row;align-items:center;justify-content:space-between;padding:20px 30px;gap:16px}
+  .pad.active{display:flex}
+  .side{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+
+  /* Joystick */
+  .stick-base{position:relative;width:min(40vw,200px);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%, #20202f 0%, #14141e 55%, #0a0a12 100%);
+    border:1px solid #ffffff10;box-shadow:inset 0 6px 26px #000000aa, inset 0 -3px 10px #ffffff08, 0 4px 14px #00000060}
+  .stick-base::before{content:"";position:absolute;inset:14%;border-radius:50%;border:2px dashed #ffffff0e}
   .stick-knob{position:absolute;top:50%;left:50%;width:46%;aspect-ratio:1;border-radius:50%;
-    background:
-      radial-gradient(circle at 38% 30%, #6a6a92 0%, #3a3a55 40%, #20202f 75%, #15151f 100%);
-    border:1px solid #ffffff22;
-    transform:translate(-50%,-50%);
-    box-shadow:0 8px 22px #000000aa, inset 0 3px 8px #ffffff30, inset 0 -6px 12px #00000080;
-    transition:background .1s, box-shadow .1s;z-index:2}
-  /* hueco central del pulgar */
-  .stick-knob::after{content:"";position:absolute;inset:24%;border-radius:50%;
-    background:radial-gradient(circle at 50% 40%, #2a2a3d, #16161f);
-    box-shadow:inset 0 2px 6px #00000090, inset 0 -2px 4px #ffffff12}
-  .stick-knob.holding{
-    background:radial-gradient(circle at 38% 30%, #8585b8 0%, #505078 38%, #2a2a40 78%, #1c1c2a 100%);
-    box-shadow:0 10px 26px #000000cc, inset 0 3px 10px #ffffff44, inset 0 -6px 12px #00000090,
-      0 0 22px #6bff9533}
+    background:radial-gradient(circle at 38% 30%, #6a6a92 0%, #3a3a55 40%, #20202f 75%, #15151f 100%);
+    border:1px solid #ffffff22;transform:translate(-50%,-50%);
+    box-shadow:0 8px 22px #000000aa, inset 0 3px 8px #ffffff30, inset 0 -6px 12px #00000080;transition:background .1s}
+  .stick-knob.holding{background:radial-gradient(circle at 38% 30%, #8585b8 0%, #505078 38%, #2a2a40 78%, #1c1c2a 100%);box-shadow:0 10px 26px #000000cc, inset 0 3px 10px #ffffff44, 0 0 22px #6bff9533}
 
-  /* Botones tipo PS con relieve */
-  .btns{position:relative;width:min(48vw,240px);aspect-ratio:1}
-  .btn{position:absolute;width:38%;aspect-ratio:1;border-radius:50%;border:2px solid;
-    background:radial-gradient(circle at 40% 32%, #20202c, #101019);
-    font-family:inherit;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 5px 14px #00000090, inset 0 2px 5px #ffffff18, inset 0 -3px 7px #00000070;
-    transition:transform .07s,filter .07s,box-shadow .07s}
-  .btn:active,.btn.down{transform:scale(.9);box-shadow:0 2px 6px #00000090, inset 0 3px 8px #00000090}
-  .btn.triangle{top:0;left:31%;color:var(--triangle);border-color:var(--triangle)}
-  .btn.square{top:31%;left:0;color:var(--square);border-color:var(--square)}
-  .btn.circle{top:31%;right:0;color:var(--circle);border-color:var(--circle)}
-  .btn.cross{bottom:0;left:31%;color:var(--cross);border-color:var(--cross)}
-  .btn.down{filter:brightness(1.6)}
-  .btn.hidden{opacity:.12;pointer-events:none}
+  /* Botón grande de disparo */
+  .fire-btn{width:min(38vw,170px);aspect-ratio:1;border-radius:50%;border:3px solid var(--fire);
+    background:radial-gradient(circle at 40% 32%, #3a1620, #1a0a10);color:var(--fire);
+    font-family:inherit;font-weight:800;font-size:24px;letter-spacing:.05em;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px #00000090, inset 0 2px 6px #ffffff18, 0 0 24px #ff4d6d22;
+    transition:transform .07s,filter .07s}
+  .fire-btn:active,.fire-btn.down{transform:scale(.92);filter:brightness(1.5);box-shadow:0 2px 8px #00000090, inset 0 3px 10px #00000080,0 0 30px #ff4d6d55}
 
-  .banner{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--dim);font-family:'Space Mono',monospace;text-align:center;width:90%;background:#0a0a12cc;padding:6px 12px;border-radius:10px}
+  .banner{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--dim);font-family:'Space Mono',monospace;text-align:center;width:90%;background:#0a0a12cc;padding:5px 10px;border-radius:10px}
+
+  /* menú overlay */
   .menu-overlay{position:absolute;inset:0;background:#0a0a12ee;display:none;align-items:center;justify-content:center;padding:24px;z-index:10}
   .menu-overlay.show{display:flex}
   .menu-card{background:var(--panel);border:1px solid #ffffff20;border-radius:20px;padding:28px 24px;text-align:center;max-width:340px}
   .menu-card h3{font-size:22px;font-weight:800;margin-bottom:8px}
   .menu-card p{color:var(--dim);font-size:14px;margin-bottom:16px;line-height:1.5}
-  .menu-opt{display:flex;align-items:center;gap:12px;justify-content:center;background:#ffffff0a;border-radius:12px;padding:14px;margin-bottom:10px;font-weight:700;font-size:16px}
-  button.menu-opt{width:100%;border:1px solid #ffffff20;color:var(--ink);font-family:inherit;cursor:pointer;transition:transform .08s,background .15s}
+  button.menu-opt{width:100%;display:flex;align-items:center;gap:12px;justify-content:center;background:#ffffff0a;border:1px solid #ffffff20;color:var(--ink);border-radius:12px;padding:14px;margin-bottom:10px;font-weight:700;font-size:16px;font-family:inherit}
   button.menu-opt:active{transform:scale(.96);background:#ffffff18}
   .menu-opt .k{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;border:2px solid;flex-shrink:0}
-  .menu-opt .kx{color:var(--cross);border-color:var(--cross)}
-  .menu-opt .ko{color:var(--circle);border-color:var(--circle)}
+  .menu-opt .kx{color:#4dd0ff;border-color:#4dd0ff}
+  .menu-opt .ko{color:#ff4d6d;border-color:#ff4d6d}
   .hidden{display:none!important}
 </style>
 </head>
@@ -107,9 +78,6 @@
 <div class="top">
   <div class="logo">Air<span>Play</span></div>
   <div class="ctrl-top" id="ctrlTop">
-    <button id="modeBtn" class="minibtn">🕹️ Stick</button>
-    <button id="aimBtn" class="minibtn" style="display:none">🎯 Activar</button>
-    <button id="centerBtn" class="minibtn" style="display:none">⊕ Centrar</button>
     <span class="sens-lbl">Sens <b id="sensVal">5</b></span>
     <input type="range" id="sensSlider" min="1" max="10" value="5" step="1" />
   </div>
@@ -128,22 +96,12 @@
 <!-- GAMEPAD -->
 <div class="pad" id="pad">
   <div class="banner" id="banner">Conectado · mirá la tele</div>
-  <div class="fire-zone" id="fireZone"><div class="hint">Apuntá moviendo el celu<br>Tocá acá para disparar</div></div>
-  <div class="menu-overlay" id="menuOverlay">
-    <div class="menu-card" id="menuCard"></div>
+  <div class="menu-overlay" id="menuOverlay"><div class="menu-card" id="menuCard"></div></div>
+  <div class="side">
+    <div class="stick-base" id="stickBase"><div class="stick-knob" id="stickKnob"></div></div>
   </div>
   <div class="side">
-    <div class="stick-base" id="stickBase">
-      <div class="stick-knob" id="stickKnob"></div>
-    </div>
-  </div>
-  <div class="side">
-    <div class="btns">
-      <button class="btn triangle" data-btn="triangle">△</button>
-      <button class="btn square" data-btn="square">□</button>
-      <button class="btn circle" data-btn="circle">○</button>
-      <button class="btn cross" data-btn="cross">✕</button>
-    </div>
+    <button class="fire-btn" id="fireBtn">DISPARAR</button>
   </div>
 </div>
 
@@ -154,16 +112,8 @@
 
   const codeInput = document.getElementById("codeInput");
   if (params.get("code")) codeInput.value = params.get("code").toUpperCase();
-
-  document.getElementById("clearBtn").onclick = () => {
-    codeInput.value = "";
-    codeInput.focus();
-    document.getElementById("err").textContent = "";
-  };
-  // forzar mayúsculas mientras escribe
-  codeInput.addEventListener("input", () => {
-    codeInput.value = codeInput.value.toUpperCase();
-  });
+  document.getElementById("clearBtn").onclick = () => { codeInput.value=""; codeInput.focus(); document.getElementById("err").textContent=""; };
+  codeInput.addEventListener("input", () => { codeInput.value = codeInput.value.toUpperCase(); });
 
   document.getElementById("joinBtn").onclick = () => {
     const code = codeInput.value.trim().toUpperCase();
@@ -171,10 +121,7 @@
     if (code.length < 4) { document.getElementById("err").textContent = "Código incompleto"; return; }
     socket.emit("player:join", { code, name });
   };
-
-  socket.on("player:error", ({ message }) => {
-    document.getElementById("err").textContent = message;
-  });
+  socket.on("player:error", ({ message }) => { document.getElementById("err").textContent = message; });
 
   socket.on("player:joined", ({ color }) => {
     myColor = color;
@@ -183,28 +130,25 @@
     document.getElementById("you").textContent = "● conectado";
     document.getElementById("you").style.color = color;
     document.getElementById("ctrlTop").classList.add("show");
-    sendSens(); // mandar sensibilidad inicial
+    sendSens();
   });
 
-  /* ---------- BARRA DE SENSIBILIDAD ---------- */
+  /* SENSIBILIDAD */
   const sensSlider = document.getElementById("sensSlider");
   function sendSens(){
-    const v = parseInt(sensSlider.value, 10);
+    const v = parseInt(sensSlider.value,10);
     document.getElementById("sensVal").textContent = v;
     socket.emit("player:input", { type:"sens", value:v });
   }
   sensSlider.addEventListener("input", sendSens);
 
-  /* ---------- JOYSTICK ANALÓGICO ---------- */
+  /* JOYSTICK */
   const base = document.getElementById("stickBase");
   const knob = document.getElementById("stickKnob");
   let activeTouchId = null;
-  let curX = 0, curY = 0;        // valor actual del stick (-1..1)
-  let prevX = 0, prevY = 0;
+  let curX = 0, curY = 0, prevX = 0, prevY = 0;
 
-  // loop de envío continuo: manda el stick ~60 veces por segundo
   function axisLoop(){
-    // manda si hay movimiento, o si recién volvió a cero (para frenar)
     if (curX !== 0 || curY !== 0 || prevX !== 0 || prevY !== 0){
       socket.emit("player:input", { type:"axis", x:+curX.toFixed(3), y:+curY.toFixed(3) });
       prevX = curX; prevY = curY;
@@ -213,200 +157,69 @@
   }
   requestAnimationFrame(axisLoop);
 
-  function moveStick(clientX, clientY) {
+  function moveStick(clientX, clientY){
     const r = base.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    let dx = clientX - cx;
-    let dy = clientY - cy;
-    const max = r.width / 2;
-    const dist = Math.hypot(dx, dy);
-    if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    let dx = clientX-cx, dy = clientY-cy;
+    const max = r.width/2, dist = Math.hypot(dx,dy);
+    if (dist>max){ dx=dx/dist*max; dy=dy/dist*max; }
     knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-    curX = dx / max; curY = dy / max; // normalizado -1..1
+    curX = dx/max; curY = dy/max;
   }
+  function resetStick(){ knob.style.transform="translate(-50%,-50%)"; knob.classList.remove("holding"); curX=0; curY=0; }
 
-  function resetStick() {
-    knob.style.transform = "translate(-50%,-50%)";
-    knob.classList.remove("holding");
-    curX = 0; curY = 0;
-  }
+  base.addEventListener("touchstart",(e)=>{ const t=e.changedTouches[0]; activeTouchId=t.identifier; knob.classList.add("holding"); moveStick(t.clientX,t.clientY); },{passive:true});
+  base.addEventListener("touchmove",(e)=>{ for(const t of e.changedTouches) if(t.identifier===activeTouchId) moveStick(t.clientX,t.clientY); },{passive:true});
+  base.addEventListener("touchend",(e)=>{ for(const t of e.changedTouches) if(t.identifier===activeTouchId){ activeTouchId=null; resetStick(); } },{passive:true});
+  let mouseDown=false;
+  base.addEventListener("mousedown",(e)=>{ mouseDown=true; knob.classList.add("holding"); moveStick(e.clientX,e.clientY); });
+  window.addEventListener("mousemove",(e)=>{ if(mouseDown) moveStick(e.clientX,e.clientY); });
+  window.addEventListener("mouseup",()=>{ if(mouseDown){ mouseDown=false; resetStick(); } });
 
-  base.addEventListener("touchstart", (e) => {
-    const t = e.changedTouches[0];
-    activeTouchId = t.identifier;
-    knob.classList.add("holding");
-    moveStick(t.clientX, t.clientY);
-  }, { passive: true });
-  base.addEventListener("touchmove", (e) => {
-    for (const t of e.changedTouches) if (t.identifier === activeTouchId) moveStick(t.clientX, t.clientY);
-  }, { passive: true });
-  base.addEventListener("touchend", (e) => {
-    for (const t of e.changedTouches) if (t.identifier === activeTouchId) { activeTouchId = null; resetStick(); }
-  }, { passive: true });
+  /* BOTÓN DE DISPARO (manda 'cross', que es lo que el juego usa para disparar) */
+  const fireBtn = document.getElementById("fireBtn");
+  const firePress = (e)=>{ e.preventDefault(); fireBtn.classList.add("down"); socket.emit("player:input",{type:"button",button:"cross",state:"down"}); };
+  const fireRelease = (e)=>{ e.preventDefault(); fireBtn.classList.remove("down"); socket.emit("player:input",{type:"button",button:"cross",state:"up"}); };
+  fireBtn.addEventListener("touchstart", firePress, {passive:false});
+  fireBtn.addEventListener("touchend", fireRelease, {passive:false});
+  fireBtn.addEventListener("mousedown", firePress);
+  fireBtn.addEventListener("mouseup", fireRelease);
 
-  // soporte mouse para probar en compu
-  let mouseDown = false;
-  base.addEventListener("mousedown", (e) => { mouseDown = true; knob.classList.add("holding"); moveStick(e.clientX, e.clientY); });
-  window.addEventListener("mousemove", (e) => { if (mouseDown) moveStick(e.clientX, e.clientY); });
-  window.addEventListener("mouseup", () => { if (mouseDown) { mouseDown = false; resetStick(); } });
-
-  /* ===================== GIROSCOPIO (apuntar moviendo el celu) ===================== */
-  let gyroMode = false;       // false = stick, true = giroscopio
-  let gyroOn = false;         // si el sensor está activado y con permiso
-  let baseBeta = null, baseGamma = null;   // orientación de referencia (recentrado)
-  const GYRO_RANGE = 35;      // grados de inclinación que equivalen a tope (-1..1)
-
-  const modeBtn = document.getElementById("modeBtn");
-  const aimBtn = document.getElementById("aimBtn");
-  const centerBtn = document.getElementById("centerBtn");
-  const fireZone = document.getElementById("fireZone");
-
-  // cambiar entre Stick y Movimiento
-  modeBtn.addEventListener("click", () => {
-    gyroMode = !gyroMode;
-    if (gyroMode) {
-      modeBtn.textContent = "🎮 Movim.";
-      modeBtn.classList.add("active");
-      aimBtn.style.display = "inline-block";
-      centerBtn.style.display = "inline-block";
-      fireZone.classList.add("show");
-      document.getElementById("stickBase").style.opacity = "0.25";
-      resetStick();
-    } else {
-      modeBtn.textContent = "🕹️ Stick";
-      modeBtn.classList.remove("active");
-      aimBtn.style.display = "none";
-      centerBtn.style.display = "none";
-      fireZone.classList.remove("show");
-      document.getElementById("stickBase").style.opacity = "1";
-      curX = 0; curY = 0;
-    }
-  });
-
-  // activar el sensor (pide permiso en iOS / algunos Android)
-  aimBtn.addEventListener("click", async () => {
-    try {
-      if (typeof DeviceOrientationEvent !== "undefined" &&
-          typeof DeviceOrientationEvent.requestPermission === "function") {
-        const res = await DeviceOrientationEvent.requestPermission();
-        if (res !== "granted") { alert("Permiso de sensor denegado"); return; }
-      }
-      window.addEventListener("deviceorientation", onOrient, true);
-      gyroOn = true;
-      aimBtn.textContent = "🎯 Activo";
-      aimBtn.classList.add("active");
-      // recentrar al activar
-      baseBeta = null; baseGamma = null;
-    } catch (e) {
-      alert("Este celu no soporta el sensor de movimiento");
-    }
-  });
-
-  // recentrar: toma la orientación actual como "centro"
-  centerBtn.addEventListener("click", () => { baseBeta = null; baseGamma = null; });
-
-  let targetX = 0, targetY = 0;   // a dónde apunta el sensor
-  const SMOOTH = 0.12;            // suavizado: más bajo = más estable/lento
-
-  function onOrient(e) {
-    if (!gyroMode || !gyroOn) return;
-    let beta = e.beta || 0;    // adelante/atrás (-180..180)
-    let gamma = e.gamma || 0;  // izquierda/derecha (-90..90)
-    if (baseBeta === null) { baseBeta = beta; baseGamma = gamma; return; }
-    let dB = beta - baseBeta;
-    let dG = gamma - baseGamma;
-    // MODO APAISADO (celu horizontal, como un fusil):
-    // - girar el celu como volante (cambia beta) => mover en horizontal
-    // - levantar/bajar el celu (cambia gamma) => mover en vertical
-    targetX = Math.max(-1, Math.min(1, dB / GYRO_RANGE));
-    targetY = Math.max(-1, Math.min(1, -dG / GYRO_RANGE));
-  }
-
-  // loop de suavizado: la mira se acerca de a poco al objetivo (estable, sin temblar)
-  function gyroSmoothLoop(){
-    if (gyroMode && gyroOn) {
-      curX += (targetX - curX) * SMOOTH;
-      curY += (targetY - curY) * SMOOTH;
-    }
-    requestAnimationFrame(gyroSmoothLoop);
-  }
-  requestAnimationFrame(gyroSmoothLoop);
-
-
-  // disparar tocando la zona (modo giroscopio)
-  function fireDown(e){ e.preventDefault(); fireZone.classList.add("firing");
-    socket.emit("player:input", { type:"button", button:"cross", state:"down" }); }
-  function fireUp(e){ e.preventDefault(); fireZone.classList.remove("firing");
-    socket.emit("player:input", { type:"button", button:"cross", state:"up" }); }
-  fireZone.addEventListener("touchstart", fireDown, { passive:false });
-  fireZone.addEventListener("touchend", fireUp, { passive:false });
-  fireZone.addEventListener("mousedown", fireDown);
-  fireZone.addEventListener("mouseup", fireUp);
-
-  /* ---------- BOTONES ---------- */
-  document.querySelectorAll(".btn").forEach((b) => {
-    const name = b.dataset.btn;
-    const press = (e) => { e.preventDefault(); b.classList.add("down");
-      socket.emit("player:input", { type: "button", button: name, state: "down" }); };
-    const release = (e) => { e.preventDefault(); b.classList.remove("down");
-      socket.emit("player:input", { type: "button", button: name, state: "up" }); };
-    b.addEventListener("touchstart", press, { passive: false });
-    b.addEventListener("touchend", release, { passive: false });
-    b.addEventListener("mousedown", press);
-    b.addEventListener("mouseup", release);
-  });
-
-  /* ---------- MENSAJES DE LA TELE ---------- */
-  function showButtons(allowed){
-    document.querySelectorAll(".btn").forEach((b) => {
-      b.classList.toggle("hidden", !allowed.includes(b.dataset.btn));
-    });
-  }
-  socket.on("controller:message", (msg) => {
-    if (msg.type === "config") {
-      const allowed = msg.buttons || ["cross","circle","triangle","square"];
-      showButtons(allowed);
-      if (msg.banner) document.getElementById("banner").textContent = msg.banner;
-    }
-    if (msg.type === "banner") document.getElementById("banner").textContent = msg.text;
-    if (msg.type === "menu") {
-      const ov = document.getElementById("menuOverlay");
-      const card = document.getElementById("menuCard");
-      if (msg.kind === "none") { ov.classList.remove("show"); }
-      else if (msg.kind === "start") {
-        card.innerHTML = `<h3>¡Todo listo!</h3><p>Sos el jugador que controla el juego.</p>
-          <button class="menu-opt tap" data-act="cross"><span class="k kx">✕</span> Empezar a jugar</button>`;
-        wireMenuButtons();
-        ov.classList.add("show");
-      } else if (msg.kind === "end") {
-        card.innerHTML = `<h3>Game Over</h3><p>Elegí qué hacer:</p>
-          <button class="menu-opt tap" data-act="cross"><span class="k kx">✕</span> Jugar de nuevo</button>
-          <button class="menu-opt tap" data-act="circle"><span class="k ko">○</span> Salir al inicio</button>`;
-        wireMenuButtons();
-        ov.classList.add("show");
-      }
-    }
-    if (msg.type === "config") { document.getElementById("menuOverlay").classList.remove("show"); }
-    if (msg.type === "room_closed") {
-      document.getElementById("pad").classList.remove("active");
-      document.getElementById("joinScreen").classList.remove("hidden");
-      document.getElementById("err").textContent = "La pantalla cerró la sala";
-    }
-  });
-
-  // los botones del cartel mandan la acción directamente (un toque = down)
+  /* MENÚ (start / game over) controlado por el jugador 1 */
   function wireMenuButtons(){
     document.querySelectorAll(".menu-opt.tap").forEach(b=>{
-      const act = b.dataset.act;
-      const fire = (e)=>{ e.preventDefault(); e.stopPropagation();
-        socket.emit("player:input", { type:"button", button:act, state:"down" });
-        socket.emit("player:input", { type:"button", button:act, state:"up" });
-      };
-      b.addEventListener("touchstart", fire, { passive:false });
-      b.addEventListener("click", fire);
+      const act=b.dataset.act;
+      const fire=(e)=>{ e.preventDefault(); e.stopPropagation();
+        socket.emit("player:input",{type:"button",button:act,state:"down"});
+        socket.emit("player:input",{type:"button",button:act,state:"up"}); };
+      b.addEventListener("touchstart",fire,{passive:false});
+      b.addEventListener("click",fire);
     });
   }
+  socket.on("controller:message",(msg)=>{
+    if (msg.type==="config"){ if(msg.banner) document.getElementById("banner").textContent=msg.banner; }
+    if (msg.type==="banner") document.getElementById("banner").textContent=msg.text;
+    if (msg.type==="menu"){
+      const ov=document.getElementById("menuOverlay"), card=document.getElementById("menuCard");
+      if (msg.kind==="none"){ ov.classList.remove("show"); }
+      else if (msg.kind==="start"){
+        card.innerHTML=`<h3>¡Todo listo!</h3><p>Sos el jugador que controla el juego.</p>
+          <button class="menu-opt tap" data-act="cross"><span class="k kx">✕</span> Empezar a jugar</button>`;
+        wireMenuButtons(); ov.classList.add("show");
+      } else if (msg.kind==="end"){
+        card.innerHTML=`<h3>Game Over</h3><p>Elegí qué hacer:</p>
+          <button class="menu-opt tap" data-act="cross"><span class="k kx">✕</span> Jugar de nuevo</button>
+          <button class="menu-opt tap" data-act="circle"><span class="k ko">○</span> Salir al inicio</button>`;
+        wireMenuButtons(); ov.classList.add("show");
+      }
+    }
+    if (msg.type==="config"){ document.getElementById("menuOverlay").classList.remove("show"); }
+    if (msg.type==="room_closed"){
+      document.getElementById("pad").classList.remove("active");
+      document.getElementById("joinScreen").classList.remove("hidden");
+      document.getElementById("err").textContent="La pantalla cerró la sala";
+    }
+  });
 </script>
 </body>
 </html>
